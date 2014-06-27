@@ -1,6 +1,6 @@
 function bin_freq = dialer_log_grapher(filename, nums_to_graph)
-% DIALER_LOG_GRAPHER - Read the csv log export from DialerOne Android, and
-% produce bar graphs of call durations
+% DIALER_LOG_GRAPHER - Read the csv log export from Dialer One (Android), 
+% and produce a histogram of call durations.
 % 
 % 'filename' is the path to the CSV (actually semicolon separated) file,
 % nums_to_graph is the list of numbers whose call durations are to be
@@ -49,14 +49,13 @@ title(graphtitle);
 %use bin_values to find empty space in the graph, put the text there (TBD)
 max_calls = max(bin_freq);
 
-
 text((90/100*xmax), (95/100*max_calls), ...
      sprintf('Period of call log data:\n    %s - %s     ', begin_date, end_date));
 
 max_minutes = ceil(xmax/60); %bring it to a round minute
-%this ensures all ticks are at minutes, the -1 is for linspace
+%this ensures all ticks are at minutes too; the -1 is for the sake of linspace
 max_minutes = ceil(max_minutes/(num_xticks-1))*(num_xticks-1); 
-ceiled_xmax = max_minutes*60; %x-axis needs the same value but in seconds
+ceiled_xmax = max_minutes*60; %XLim needs the same value but in seconds
 xticks = linspace(0, ceiled_xmax, num_xticks); 
 
 xticklabels = num2cell(datestr((xticks/3600)/24, 'HH:MM:SS'), 2); 
