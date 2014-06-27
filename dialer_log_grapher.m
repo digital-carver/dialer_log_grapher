@@ -1,4 +1,4 @@
-function dur_to_graph = dialer_log_grapher(filename, nums_to_graph)
+function dialer_log_grapher(filename, nums_to_graph)
 % DIALER_LOG_GRAPHER - Read the csv log export from DialerOne Android, and
 % produce bar graphs of call durations
 % 
@@ -27,15 +27,21 @@ dur_to_graph = durations(vertcat(match_indices{:}));
 hist(dur_to_graph, 50); 
 
 % Now make easier for muggle consumption
-xlabel('Duration of call (mm:ss)')
+xlabel('Duration of call');
+ylabel('Number of occurrences');
+graphtitle = ['Graph of call durations from ' sprintf('%u, ', nums_to_graph)];
+graphtitle = graphtitle(1:end-2); %remove the last , and space
+title(graphtitle);
 max_minutes = ceil(max(dur_to_graph)/60); %bring it to a round minute
 %this ensures all ticks are at minutes, the -1 is for linspace
 max_minutes = ceil(max_minutes/(num_xticks-1))*(num_xticks-1); 
 ceiled_xmax = max_minutes*60; %x-axis needs the same value but in seconds
 xticks = linspace(0, ceiled_xmax, num_xticks); 
 
-xticklabels = datestr((xticks/3600)/24, 'MM:SS'); %FIXME?
-set(gca, 'XLim', [0 ceiled_xmax], 'XTick', xticks,'XTickLabel', {xticklabels});
+xticklabels = num2cell(datestr((xticks/3600)/24, 'HH:MM:SS'), 2); 
+xticklabels = regexprep(xticklabels, '^00:(\d{2}:\d{2})', '$1');
+
+set(gca, 'XLim', [0 ceiled_xmax], 'XTick', xticks,'XTickLabel', xticklabels);
 
 end
 
