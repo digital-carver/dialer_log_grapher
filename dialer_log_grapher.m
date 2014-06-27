@@ -9,8 +9,12 @@ function dur_to_graph = dialer_log_grapher(filename, nums_to_graph)
 % entity.
 % TODO: Remove "+country code" or "0" from numbers before comparing.
 
+%config values 
+num_xticks = 10; 
+
 fid = fopen(filename);
-num_duration_cell = textscan(fid, '%u64 %*s %*s %n:%n', 'CommentStyle', '#', 'Delimiter', ';', 'EmptyValue', 0, 'HeaderLines', 2);
+num_duration_cell = textscan(fid, '%u64 %*s %*s %n:%n', 'CommentStyle', '#', ...
+                                'Delimiter', ';', 'EmptyValue', 0, 'HeaderLines', 2);
 fclose(fid);
 
 numbers = num_duration_cell{1, 1};
@@ -24,9 +28,14 @@ hist(dur_to_graph, 50);
 
 % Now make easier for muggle consumption
 xlabel('Duration of call (mm:ss)')
-rounded_xmax = round(max(dur_to_graph)/60)*60; %bring it to a round minute
-xticks = linspace(0, rounded_xmax, 10);
+max_minutes = ceil(max(dur_to_graph)/60); %bring it to a round minute
+%this ensures all ticks are at minutes, the -1 is for linspace
+max_minutes = ceil(max_minutes/(num_xticks-1))*(num_xticks-1); 
+ceiled_xmax = max_minutes*60; %x-axis needs the same value but in seconds
+xticks = linspace(0, ceiled_xmax, num_xticks); 
+
 xticklabels = datestr((xticks/3600)/24, 'MM:SS'); %FIXME?
-set(gca, 'XLim', [0 rounded_xmax], 'XTick', xticks,'XTickLabel', {xticklabels});
+set(gca, 'XLim', [0 ceiled_xmax], 'XTick', xticks,'XTickLabel', {xticklabels});
 
 end
+
