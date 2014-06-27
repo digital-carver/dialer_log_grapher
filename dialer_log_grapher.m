@@ -1,4 +1,4 @@
-function dialer_log_grapher(filename, nums_to_graph)
+function bin_freq = dialer_log_grapher(filename, nums_to_graph)
 % DIALER_LOG_GRAPHER - Read the csv log export from DialerOne Android, and
 % produce bar graphs of call durations
 % 
@@ -9,29 +9,40 @@ function dialer_log_grapher(filename, nums_to_graph)
 % entity.
 % TODO: Remove "+country code" or "0" from numbers before comparing.
 
-%config values 
+%%config values 
 num_xticks = 10; 
 
+%% Actual data processing
 fid = fopen(filename);
-num_duration_cell = textscan(fid, '%u64 %*s %*s %n:%n', 'CommentStyle', '#', ...
+data_cell = textscan(fid, '%u64 %s %s %n:%n', 'CommentStyle', '#', ...
                                 'Delimiter', ';', 'EmptyValue', 0, 'HeaderLines', 2);
 fclose(fid);
 
-numbers = num_duration_cell{1, 1};
-durations = num_duration_cell{1, 2}*60 + num_duration_cell{1, 3};
+numbers = data_cell{1, 1};
+names = data_cell{1, 2};
+dates = data_cell{1, 3};
+durations = data_cell{1, 4}*60 + data_cell{1, 5};
 
 match_indices =  arrayfun(@(x) find(numbers==x), nums_to_graph, 'UniformOutput', false);
 
 dur_to_graph = durations(vertcat(match_indices{:}));
-%dur_to_graph(dur_to_graph > 300) = 300;
-hist(dur_to_graph, 50); 
+%the .../20 part is to have 20 seconds in each bin
+[bin_freq, bin_dur] = hist(dur_to_graph, round(max(dur_to_graph)/20));
+bar(bin_dur, bin_freq);
+% hold on; 
+% plot(bin_dur, bin_freq);
 
-% Now make easier for muggle consumption
+%% Now make easier for muggle consumption
 xlabel('Duration of call');
-ylabel('Number of occurrences');
+ylabel('Number of calls');
 graphtitle = ['Graph of call durations from ' sprintf('%u, ', nums_to_graph)];
 graphtitle = graphtitle(1:end-2); %remove the last , and space
 title(graphtitle);
+
+%use bin_values to find empty space in the graph, put the text there
+max_calls = max(bin_freq);
+%TBD
+
 max_minutes = ceil(max(dur_to_graph)/60); %bring it to a round minute
 %this ensures all ticks are at minutes, the -1 is for linspace
 max_minutes = ceil(max_minutes/(num_xticks-1))*(num_xticks-1); 
