@@ -26,24 +26,34 @@ durations = data_cell{1, 4}*60 + data_cell{1, 5};
 match_indices =  arrayfun(@(x) find(numbers==x), nums_to_graph, 'UniformOutput', false);
 
 dur_to_graph = durations(vertcat(match_indices{:}));
+xmax = max(dur_to_graph);
+
+match_names = unique(names(vertcat(match_indices{:})));
+%Get the first and last dates in the data as dd mmm
+begin_date = get_human_date(dates(end));
+end_date = get_human_date(dates(1));
+
 %the .../20 part is to have 20 seconds in each bin
-[bin_freq, bin_dur] = hist(dur_to_graph, round(max(dur_to_graph)/20));
+[bin_freq, bin_dur] = hist(dur_to_graph, round(xmax/20));
 bar(bin_dur, bin_freq);
-% hold on; 
-% plot(bin_dur, bin_freq);
+
+
 
 %% Now make easier for muggle consumption
 xlabel('Duration of call');
 ylabel('Number of calls');
-graphtitle = ['Graph of call durations from ' sprintf('%u, ', nums_to_graph)];
+graphtitle = ['Graph of call durations from ' sprintf('%s, ', match_names{:})];
 graphtitle = graphtitle(1:end-2); %remove the last , and space
 title(graphtitle);
 
-%use bin_values to find empty space in the graph, put the text there
+%use bin_values to find empty space in the graph, put the text there (TBD)
 max_calls = max(bin_freq);
-%TBD
 
-max_minutes = ceil(max(dur_to_graph)/60); %bring it to a round minute
+
+text((90/100*xmax), (95/100*max_calls), ...
+     sprintf('Period of call log data:\n    %s - %s     ', begin_date, end_date));
+
+max_minutes = ceil(xmax/60); %bring it to a round minute
 %this ensures all ticks are at minutes, the -1 is for linspace
 max_minutes = ceil(max_minutes/(num_xticks-1))*(num_xticks-1); 
 ceiled_xmax = max_minutes*60; %x-axis needs the same value but in seconds
@@ -56,3 +66,9 @@ set(gca, 'XLim', [0 ceiled_xmax], 'XTick', xticks,'XTickLabel', xticklabels);
 
 end
 
+function human_date = get_human_date(date_str)
+
+[y, mon, d] = datevec(date_str, 'HH:MM AM mm/dd');
+human_date = datestr([y, mon, d, 0, 0, 0], 'dd mmm');
+
+end
